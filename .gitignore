@@ -1,0 +1,33 @@
+# ==========================================
+# 🛡️ OPENCLAW SOVEREIGN - SECURITY PROTOCOL
+# ==========================================
+
+# 1. CHAVES E SEGREDOS (CRÍTICO)
+.env
+keys/
+wallets/
+*.pem
+*.key
+
+# 2. AMBIENTE VIRTUAL PYTHON
+venv/
+env/
+.venv/
+
+# 3. LOGS DO AGENTE E MEMÓRIA LOCAL
+*.log
+logs/
+*.sqlite3
+*.db
+memory_cache/
+
+# 4. ARQUIVOS TEMPORÁRIOS E CACHE DE SISTEMA
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+
+# 5. DADOS BAIXADOS / ARQUIVOS GERADOS (Imagens, Vídeos, etc.)
+downloads/
+generated_media/

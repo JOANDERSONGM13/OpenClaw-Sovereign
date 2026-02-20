@@ -1,0 +1,21 @@
+{
+  "trusted_hashes": [],
+  "whitelisted_tools": [
+    {
+      "name": "search_web",
+      "description": "Searches the web using Gopher (Subnet 42)",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "system"
+    },
+    {
+      "name": "calculate_crypto_price",
+      "description": "Fetches current crypto prices via public APIs",
+      "hash": "8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4",
+      "origin": "system"
+    }
+  ],
+  "policy": {
+    "allow_new_skills": false,
+    "require_sandbox": true
+  }
+}

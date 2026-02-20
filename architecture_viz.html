@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Architecture Diagram</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</head>
+
+<body>
+    <h1>OpenClaw Sovereign Architecture v2.13</h1>
+    <div class="mermaid">
+        graph TD
+        User([User / Prompt]) --> Router{BrainRouter v2.10}
+
+        subgraph "The Trinity (Cognition)"
+        direction TB
+        Router -- "Level 1: Reflex (Fast)" --> SN64[SN64: Chutes]
+        Router -- "Level 2: Reasoning (Deep)" --> SN4[SN4: Targon]
+        Router -- "Level 3: Hyper-Logic (Critical)" --> SN120[SN120: Affine Cortex]
+        end
+
+        subgraph "The Nexus (Context & Senses)"
+        Context[ContextLoader] --> Router
+        SN13[SN13: Data Universe] --> Context
+        SN74_Clean[SN74: Clean Data] --> SN13
+        SN42[SN42: Gopher Search] --> Router
+        SN44[SN44: Manako Vision] --> Router
+        SN75[SN75: HippiusVault / Storage] --> Router
+        end
+
+        subgraph "The Body (Execution)"
+        Router -- "Action Dispatch" --> Dispatcher{Action Dispatcher}
+        Dispatcher --> SN62[SN62: Ridges / Coding]
+        Dispatcher --> SN74_Git[SN74: Gittensor / Contrib]
+        Dispatcher --> SN25[SN25: Macrocosm / Compute]
+        Dispatcher --> SN61[SN61: RedTeam / Browser]
+        end
+
+        subgraph "The Shield (Security)"
+        SN62 --> SN60[SN60: Bitsec / Auditor]
+        SN60 -- "Verified" --> SN39[SN39: Basilica / Cloud]
+        end
+
+        subgraph "The Support (Academy & Finance)"
+        SN11[SN11: Trajectory / Training] -.-> Router
+        SN58[SN58: Handshake / Specialist] -.-> Router
+        SN8[SN8: Taoshi / Finance] -.-> Router
+        SN98[SN98: Graphite / Execution] -.-> Router
+        SN35[SN35: 0xMarkets / Macro] -.-> Router
+        end
+
+        style Router fill:#f9f,stroke:#333,stroke-width:4px
+        style SN120 fill:#ff0000,stroke:#333,stroke-width:2px,color:#fff
+        style SN4 fill:#ff9900,stroke:#333
+        style SN64 fill:#00ccff,stroke:#333
+        style SN60 fill:#00ff00,stroke:#333
+        style SN44 fill:#9900ff,stroke:#333,color:#fff
+        style SN75 fill:#9900ff,stroke:#333,color:#fff
+    </div>
+</body>
+
+</html>
