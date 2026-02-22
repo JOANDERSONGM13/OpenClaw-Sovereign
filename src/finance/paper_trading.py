@@ -1,65 +1,115 @@
-import time
-import random
-from datetime import datetime
+# ====================================================================
+# NOME DO ARQUIVO: paper_trading.py
+# LOCAL: Salvar na pasta src/finance/
+# TEMA: Simulação de Combate com Loop de Vigília e Realização de Lucro (Take Profit)
+# ====================================================================
 
-class PaperTradingSimulator:
+import time
+import requests
+from datetime import datetime
+import sys
+
+class RealDataPaperTrading:
     """
-    Simulador de Combate do OpenClaw.
-    O agente analisa o mercado e anota as suas decisões num arquivo de log.
-    Nenhum dinheiro real ou de teste é gasto aqui.
+    Simulador de Combate Definitivo.
+    O agente opera em Loop, compra na baixa e VENDE automaticamente ao atingir a meta de lucro.
     """
     def __init__(self):
-        self.log_file = "historico_de_trades_simulados.txt"
-        self.caixa_virtual = 10000.00 # $10.000 dólares imaginários
-        print("\n🟢 [Paper Trading] Simulador Inicializado. Risco Real: ZERO.")
-        print(f"💰 [Caixa Virtual]: ${self.caixa_virtual:.2f}\n")
-
-    def _get_mock_price(self, asset: str) -> float:
-        """Simula a busca do preço de um ativo na Sub-rede 35."""
-        precos_base = {"BTC": 85000.0, "ETH": 3200.0, "GOLD": 2400.0}
-        base = precos_base.get(asset, 100.0)
-        # Adiciona uma flutuação aleatória de -2% a +2%
-        variacao = base * random.uniform(-0.02, 0.02)
-        return round(base + variacao, 2)
-
-    def execute_mock_trade(self, asset: str, amount_usd: float):
-        """O Agente decide investir e anota no diário."""
-        print(f"🤖 [OpenClaw] Analisando oportunidade em {asset}...")
-        time.sleep(1) # Agente "pensando"
+        self.log_file = "historico_de_trades_reais.txt"
+        self.caixa_virtual = 10000.00
+        self.meta_lucro = 1.05  # Meta de 5% de lucro para vender (Take Profit)
         
-        preco_atual = self._get_mock_price(asset)
+        # O Agente agora tem uma "Mochila" para guardar o que comprou
+        self.portfolio = {
+            "BTC": {"quantidade": 0.0, "total_gasto": 0.0},
+            "ETH": {"quantidade": 0.0, "total_gasto": 0.0},
+            "SOL": {"quantidade": 0.0, "total_gasto": 0.0}
+        }
         
-        # Lógica super simples: se ele tiver dinheiro, ele "compra"
-        if amount_usd <= self.caixa_virtual:
-            self.caixa_virtual -= amount_usd
-            quantidade_comprada = amount_usd / preco_atual
+        print("\n🌐 [Oráculo] Sensores de mercado online.")
+        print(f"💰 [Caixa Virtual]: ${self.caixa_virtual:.2f}")
+        print(f"🎯 [Estratégia]: Vender automaticamente com {(self.meta_lucro - 1) * 100}% de lucro.\n")
+
+        self.crypto_ids = {"BTC": "bitcoin", "ETH": "ethereum", "SOL": "solana"}
+
+    def _get_real_price(self, asset: str) -> float:
+        """Consulta a API pública da CoinGecko."""
+        api_id = self.crypto_ids.get(asset)
+        if not api_id: return 0.0
+        url = f"https://api.coingecko.com/api/v3/simple/price?ids={api_id}&vs_currencies=usd"
+        try:
+            resposta = requests.get(url, timeout=5)
+            return float(resposta.json()[api_id]["usd"])
+        except Exception:
+            return 0.0
+
+    def evaluate_and_trade(self, asset: str, amount_usd_to_buy: float):
+        """Lógica do Agente: Avalia se deve VENDER o que tem, ou COMPRAR mais."""
+        preco_atual = self._get_real_price(asset)
+        if preco_atual == 0.0: return
+        
+        # 1. VERIFICA SE TEMOS LUCRO PARA VENDER (TAKE PROFIT)
+        inventario = self.portfolio[asset]
+        if inventario["quantidade"] > 0:
+            preco_medio_pago = inventario["total_gasto"] / inventario["quantidade"]
             
-            mensagem = (f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] "
-                        f"COMPRA SIMULADA | Ativo: {asset} | "
-                        f"Preço: ${preco_atual} | Valor Investido: ${amount_usd} | "
-                        f"Caixa Restante: ${self.caixa_virtual:.2f}\n")
+            # Se o preço atual for 5% maior que o preço médio que pagamos...
+            if preco_atual >= (preco_medio_pago * self.meta_lucro):
+                valor_venda = inventario["quantidade"] * preco_atual
+                lucro_liquido = valor_venda - inventario["total_gasto"]
+                
+                # Executa a Venda
+                self.caixa_virtual += valor_venda
+                mensagem = (f"[{datetime.now().strftime('%H:%M:%S')}] 🟢 VENDA (LUCRO) | {asset} | "
+                            f"Preço: ${preco_atual} | Lucro: +${lucro_liquido:.2f} | Caixa: ${self.caixa_virtual:.2f}\n")
+                
+                print(f"    🤑 [TAKE PROFIT] Vendeu {asset} com lucro de ${lucro_liquido:.2f}!")
+                
+                # Zera a mochila deste ativo
+                self.portfolio[asset] = {"quantidade": 0.0, "total_gasto": 0.0}
+                
+                with open(self.log_file, "a") as file:
+                    file.write(mensagem)
+                return # Encerra o turno deste ativo, já vendemos.
+
+        # 2. SE NÃO VENDEU, TENTA COMPRAR MAIS (ACUMULAÇÃO)
+        if amount_usd_to_buy <= self.caixa_virtual:
+            self.caixa_virtual -= amount_usd_to_buy
+            qtd_comprada = amount_usd_to_buy / preco_atual
             
-            print(f"    ✅ Trade Aprovado! Comprado {quantidade_comprada:.4f} de {asset}.")
+            # Guarda na mochila
+            self.portfolio[asset]["quantidade"] += qtd_comprada
+            self.portfolio[asset]["total_gasto"] += amount_usd_to_buy
             
-            # Escreve no arquivo de log (O diário do agente)
+            mensagem = (f"[{datetime.now().strftime('%H:%M:%S')}] 🔴 COMPRA | {asset} | "
+                        f"Preço: ${preco_atual} | Investido: ${amount_usd_to_buy} | Caixa: ${self.caixa_virtual:.2f}\n")
+            
+            print(f"    🛒 Comprou {qtd_comprada:.6f} {asset} a ${preco_atual}")
+            
             with open(self.log_file, "a") as file:
                 file.write(mensagem)
-                
-            print(f"    📝 Registro salvo em: {self.log_file}")
         else:
-            print("    ❌ Saldo virtual insuficiente para esta manobra.")
+            print(f"    ❌ Sem saldo para comprar {asset}. Aguardando vendas para fazer caixa.")
 
-# ==========================================
-# EXECUTANDO A SIMULAÇÃO
-# ==========================================
+    def start_vigil_mode(self, interval_minutes: int):
+        print(f"🦉 [Sentinela] Modo Vigília ativado. Loop de {interval_minutes} minuto(s). [Ctrl+C] para sair.\n")
+        ciclo = 1
+        interval_seconds = interval_minutes * 60
+        try:
+            while True:
+                print(f"--- 🔄 Ciclo Operacional #{ciclo} ---")
+                self.evaluate_and_trade("BTC", 100.00) 
+                time.sleep(3) 
+                self.evaluate_and_trade("ETH", 50.00)  
+                
+                print(f"😴 Fim do Ciclo {ciclo}. Hibernando...\n")
+                ciclo += 1
+                time.sleep(interval_seconds) 
+        except KeyboardInterrupt:
+            print("\n🛑 Sistema Desativado pelo Comandante.")
+            print(f"💼 Caixa Final: ${self.caixa_virtual:.2f}")
+            sys.exit(0)
+
 if __name__ == "__main__":
-    simulador = PaperTradingSimulator()
-    
-    # O agente simula 3 operações diferentes
-    simulador.execute_mock_trade("BTC", 1500.00)
-    time.sleep(2)
-    simulador.execute_mock_trade("ETH", 800.00)
-    time.sleep(2)
-    simulador.execute_mock_trade("GOLD", 2000.00)
-    
-    print(f"\n🏁 Simulação concluída. Verifique o arquivo '{simulador.log_file}'.")
+    simulador = RealDataPaperTrading()
+    simulador.start_vigil_mode(interval_minutes=1)
