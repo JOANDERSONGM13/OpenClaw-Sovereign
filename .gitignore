@@ -31,3 +31,4 @@ __pycache__/
 # 5. DADOS BAIXADOS / ARQUIVOS GERADOS (Imagens, Vídeos, etc.)
 downloads/
 generated_media/
+historico_de_trades_simulados.txt
